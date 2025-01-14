@@ -72,15 +72,22 @@ public class SecurityConfig {
    @Bean
 public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
     http
-        .cors() // Usar configuración global de WebConfig
-        .csrf(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(req -> req
-            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permitir preflight requests
-            .requestMatchers("/api/v1/auth/**").permitAll() // Permitir solicitudes a rutas de autenticación
-            .anyRequest().authenticated()) // Requiere autenticación para el resto
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authenticationProvider(authenticationProvider())
-        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Configuración de CORS
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(req -> req.requestMatchers("/api/v1/auth/**")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .logout(logout -> logout.logoutUrl("api/v1/auth/logout")
+                    .addLogoutHandler((request, response, authentication) -> {
+                        var authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+                        logout(authHeader);
+                    })
+                    .logoutSuccessHandler(
+                            (request, response, authentication) -> SecurityContextHolder.clearContext()));
 
     return http.build();
 }
@@ -88,7 +95,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter 
 @Bean
 public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration corsConfig = new CorsConfiguration();
-    corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200", "https://frontend-proyf.vercel.app","https://frontend-proyf-git-main-rodrigos-projects-3bf1b557.vercel.app")); // Reemplaza con los dominios que necesitas permitir
+    corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200", "https://frontend-proyf.vercel.app/")); // Reemplaza con los dominios que necesitas permitir
     corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
     corsConfig.setAllowCredentials(true);
