@@ -88,7 +88,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter 
 @Bean
 public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration corsConfig = new CorsConfiguration();
-    corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200", "https://frontend-proyf.vercel.app")); // Reemplaza con los dominios que necesitas permitir
+    corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200", "https://frontend-proyf.vercel.app","https://frontend-proyf-git-main-rodrigos-projects-3bf1b557.vercel.app")); // Reemplaza con los dominios que necesitas permitir
     corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
     corsConfig.setAllowCredentials(true);
