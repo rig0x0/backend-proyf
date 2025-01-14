@@ -72,22 +72,15 @@ public class SecurityConfig {
    @Bean
 public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
     http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Configuración de CORS
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(req -> req.requestMatchers("/api/v1/auth/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            .logout(logout -> logout.logoutUrl("api/v1/auth/logout")
-                    .addLogoutHandler((request, response, authentication) -> {
-                        var authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-                        logout(authHeader);
-                    })
-                    .logoutSuccessHandler(
-                            (request, response, authentication) -> SecurityContextHolder.clearContext()));
+        .cors() // Usar configuración global de WebConfig
+        .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(req -> req
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permitir preflight requests
+            .requestMatchers("/api/v1/auth/**").permitAll() // Permitir solicitudes a rutas de autenticación
+            .anyRequest().authenticated()) // Requiere autenticación para el resto
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authenticationProvider(authenticationProvider())
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
 }
